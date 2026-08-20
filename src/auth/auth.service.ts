@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { User } from '../users/user.entity';
 import { OtpService } from '../otp/otp.service';
 import { EmailService } from '../email/email.service';
+import { validate } from 'deep-email-validator';
 
 @Injectable()
 export class AuthService {
@@ -22,8 +23,18 @@ export class AuthService {
       throw new BadRequestException('Please wait 60 seconds before requesting a new OTP');
     }
 
+    const emailCheck = await validate(email);
+    if (!emailCheck.valid) {
+      throw new BadRequestException('address not found');
+    }
+
     const code = await this.otpService.generateOtp(email);
-    await this.emailService.sendOtp(email, code);
+    
+    try {
+      await this.emailService.sendOtp(email, code);
+    } catch (error) {
+      throw new BadRequestException('address not found');
+    }
 
     return {
       message: 'OTP sent to your email',

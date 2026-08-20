@@ -1,6 +1,6 @@
 import { IsEmail } from 'class-validator';
 
 export class SendOtpDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'address not found' })
   email: string;
 }
